@@ -1,0 +1,81 @@
+---
+title: "36-490 Hewins Fiction Novels"
+output: html_document
+---
+
+```{r}
+library(cmu.textstat)
+library(quanteda)
+library(quanteda.textstats)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(writexl)
+library(tidytext)
+raw = read_excel("Hewins_Metadata_Sept12021.xlsx")
+book = data.frame(raw[c(6,34)])
+genre = data.frame(raw[35:51])
+genre2 = genre
+for (i in 1:ncol(genre))
+  genre2[i] = apply(genre[i], 1, function(x)as.integer(any(grep("iction",x))))
+book1 <- data.frame(book, rowSums(genre2))
+book1<- mutate(book1, ind = ifelse(rowSums(genre2) >=1, 1, 0))
+#sum(book1$ind)
+
+book1$count <- str_detect(book1$Corpus_Gephi_File_Name,";")
+book1 <- subset(book1,count == "FALSE" & ind == 1)
+```
+
+```{r}
+revised = read_excel("Revised2_Hewins_Metadata_Sept12021.xlsx")
+book = data.frame(revised[c(6,34)])
+genre = data.frame(revised[35:51])
+genre2 = genre
+for (i in 1:ncol(genre))
+  genre2[i] = apply(genre[i], 1, function(x)as.integer(any(grep("iction",x))))
+book2 <- data.frame(book, rowSums(genre2))
+book2<- mutate(book2, ind = ifelse(rowSums(genre2) >=1, 1, 0))
+#sum(book1$ind)
+
+book2$count <- str_detect(book2$Corpus_Gephi_File_Name,";")
+book2 <- subset(book2,count == "FALSE" & ind == 1)
+```
+
+```{r}
+books <- rbind(book1, book2)
+min(books$Date_of_Publication, na.rm = TRUE)
+max(books$Date_of_Publication, na.rm = TRUE)
+
+books$year<- cut(books$Date_of_Publication, 
+              breaks = c(1760, 1780, 1800, 1820, 1840, 1860, 1880, 1900, 1920, 1940, 1960), 
+              labels = c("1761-1780", "1781-1800", "1801-1820", "1821-1840", "1841-1860", "1861-1880", "1881-1900", "1901-1920", "1921-1940", "1941-1960"))
+
+table(books$year)
+books$doc_id = books$Corpus_Gephi_File_Name
+#d <- books %>% filter(Date_of_Publication >= 1880)
+#nrow(d)
+```
+
+```{r}
+corpus <- list.files("/Users/VickiChang/Desktop/corpus", full.names = T)
+novels <- readtext::readtext(corpus)
+
+fiction <- novels %>%
+  mutate(doc_id = str_remove_all(doc_id, ".txt")) %>% 
+  left_join(select(books, doc_id, year, ind), by ="doc_id") %>% 
+  filter(ind == 1) %>% 
+  select(-c(ind))
+
+fiction_corpus <- fiction %>% corpus()
+writeLines(as.character(fiction_corpus), con = "fiction_corpus.txt")
+
+fiction_tkns <- fiction_corpus %>%
+  tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+  tokens_remove(pattern = stopwords(source = "smart"))
+fiction_dfm <- dfm(fiction_tkns)
+
+words <- textstat_frequency(fiction_dfm, n = 400000000)
+words[,c(1:3)]
+write_xlsx(data.frame(words[,c(1:3)]),"/Users/VickiChang/Desktop/hewins_words.xlsx")
+```
+
