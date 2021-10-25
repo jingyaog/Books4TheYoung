@@ -1,0 +1,43 @@
+---
+title: "36-490 Chicago Fiction Novels"
+output: html_document
+---
+
+```{r message = FALSE}
+set.seed(123)
+library(cmu.textstat)
+library(quanteda)
+library(quanteda.textstats)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(writexl)
+library(tidytext)
+raw = read_csv("/Users/VickiChang/Desktop/University of Chicago Corpus/CHICAGO_CORPUS_NOVELS_PUBLIC.csv")
+corpus <- list.files("/Users/VickiChang/Desktop/University of Chicago Corpus/texts_public", full.names = T)
+corpus <- sample(corpus, 329)
+novels <- readtext::readtext(corpus)
+```
+
+```{r}
+info_body <- data.frame(str_split(novels$text, pattern = "<body>"))
+novels$info <- t(info_body[1,])
+novels$body <- t(info_body[2,])
+novels_new <- novels 
+novels$text <- novels$body
+novels <- novels %>% select(doc_id, text)
+```
+
+```{r}
+novels <- gsub("<[^>]+>","",novels)
+fiction_corpus <- novels %>% corpus()
+
+fiction_tkns <- fiction_corpus %>%
+  tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+  tokens_remove(pattern = stopwords(source = "smart"))
+fiction_dfm <- dfm(fiction_tkns)
+
+words <- textstat_frequency(fiction_dfm, n = 400000000)
+words[,c(1:3)]
+write_xlsx(data.frame(words[,c(1:3)]),"/Users/VickiChang/Desktop/BODY_chicago_words.xlsx")
+```
