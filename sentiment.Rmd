@@ -1,0 +1,47 @@
+---
+title: "sentiment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r sentiment}
+# install.packages("tidytext")
+# install.packages("textdata")
+suppressMessages(library(tidytext))
+nrc = get_sentiments("nrc")
+
+chicago = read.csv("chicago_words.csv")
+top1000 = chicago$word[1:1000]
+chicago
+
+sent.list = rep(NA, 500)
+for (i in seq(1000)) {
+  # print(sent.list[i])
+  sent = nrc$sentiment[which(nrc$word == top500[i])]
+  # print(sent)
+  # if (!identical(sent, character(0))) sent.list[i] = sent
+  if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+}
+(sent.list = sent.list[!is.na(sent.list)])
+(table = table(sent.list))
+
+table[names(table) == "joy"]
+```
+
+
+
+```{r pressure}
+library(readxl)
+read_excel("hewins_words.xlsx")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
