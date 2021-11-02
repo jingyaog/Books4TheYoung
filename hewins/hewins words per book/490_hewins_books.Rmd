@@ -1,0 +1,166 @@
+---
+title: "36-490 Hewins Word Frequencies for Each Fiction Book"
+output: html_document
+---
+
+```{r}
+library(cmu.textstat)
+library(quanteda)
+library(quanteda.textstats)
+library(tidyverse)
+library(readxl)
+library(ggplot2)
+library(writexl)
+library(tidytext)
+raw = read_excel("/Users/VickiChang/Desktop/Hewins/Hewins_Metadata_Sept12021.xlsx")
+book = data.frame(raw[c(6,34)])
+genre = data.frame(raw[35:51])
+genre2 = genre
+for (i in 1:ncol(genre))
+  genre2[i] = apply(genre[i], 1, function(x)as.integer(any(grep("iction",x))))
+book1 <- data.frame(book, rowSums(genre2))
+book1<- mutate(book1, ind = ifelse(rowSums(genre2) >=1, 1, 0))
+#sum(book1$ind)
+
+book1$count <- str_detect(book1$Corpus_Gephi_File_Name,";")
+book1 <- subset(book1,count == "FALSE" & ind == 1)
+```
+
+```{r}
+revised = read_excel("/Users/VickiChang/Desktop/Hewins/Revised2_Hewins_Metadata_Sept12021.xlsx")
+book = data.frame(revised[c(6,34)])
+genre = data.frame(revised[35:51])
+genre2 = genre
+for (i in 1:ncol(genre))
+  genre2[i] = apply(genre[i], 1, function(x)as.integer(any(grep("iction",x))))
+book2 <- data.frame(book, rowSums(genre2))
+book2<- mutate(book2, ind = ifelse(rowSums(genre2) >=1, 1, 0))
+#sum(book1$ind)
+
+book2$count <- str_detect(book2$Corpus_Gephi_File_Name,";")
+book2 <- subset(book2,count == "FALSE" & ind == 1)
+```
+
+```{r}
+books <- rbind(book1, book2)
+#min(books$Date_of_Publication, na.rm = TRUE)
+#max(books$Date_of_Publication, na.rm = TRUE)
+
+books$year<- cut(books$Date_of_Publication, 
+              breaks = c(1760, 1780, 1800, 1820, 1840, 1860, 1880, 1900, 1920, 1940, 1960), 
+              labels = c("1761-1780", "1781-1800", "1801-1820", "1821-1840", "1841-1860", "1861-1880", "1881-1900", "1901-1920", "1921-1940", "1941-1960"))
+
+books$doc_id = books$Corpus_Gephi_File_Name
+write_xlsx(data.frame(books),"/Users/VickiChang/Desktop/Hewins/hewins_books.xlsx")
+```
+
+```{r}
+corpus <- list.files("/Users/VickiChang/Desktop/Hewins/corpus", full.names = T)
+novels <- readtext::readtext(corpus)
+
+fiction <- novels %>%
+  mutate(doc_id = str_remove_all(doc_id, ".txt")) %>% 
+  left_join(select(books, doc_id, year, ind), by ="doc_id") %>% 
+  filter(ind == 1) %>% 
+  select(-c(ind))
+```
+
+```{r}
+for (i in 1:1){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- b_words[,c(1,2,3,6)]
+}
+
+for (i in 2:100){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- rbind(all_words, b_words[,c(1,2,3,6)])
+}
+write_xlsx(data.frame(all_words),"/Users/VickiChang/Desktop/Hewins/Individual Books/all_words1.xlsx")
+```
+
+```{r}
+for (i in 101:101){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- b_words[,c(1,2,3,6)]
+}
+
+for (i in 102:200){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- rbind(all_words, b_words[,c(1,2,3,6)])
+}
+write_xlsx(data.frame(all_words),"/Users/VickiChang/Desktop/Hewins/Individual Books/all_words2.xlsx")
+```
+
+```{r}
+for (i in 201:201){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- b_words[,c(1,2,3,6)]
+}
+
+for (i in 202:300){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- rbind(all_words, b_words[,c(1,2,3,6)])
+}
+write_xlsx(data.frame(all_words),"/Users/VickiChang/Desktop/Hewins/Individual Books/all_words3.xlsx")
+```
+
+```{r}
+for (i in 301:301){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- b_words[,c(1,2,3,6)]
+}
+
+for (i in 301:nrow(fiction)){
+  b <- fiction[i,]  %>% corpus()
+  b_tkns <- b %>%
+    tokens(include_docvars=T, remove_punct = T, remove_numbers = T, remove_symbols = T, what = "word") %>%
+    tokens_remove(pattern = stopwords(source = "smart"))
+  b_dfm <- dfm(b_tkns)
+  b_words <- textstat_frequency(b_dfm, n = 400000000)
+  b_words$doc_id = fiction$doc_id[i]
+  all_words <- rbind(all_words, b_words[,c(1,2,3,6)])
+}
+write_xlsx(data.frame(all_words),"/Users/VickiChang/Desktop/Hewins/Individual Books/all_words4.xlsx")
+```
