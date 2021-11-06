@@ -19,22 +19,65 @@ When you click the **Knit** button a document will be generated that includes bo
 suppressMessages(library(tidytext))
 nrc = get_sentiments("nrc")
 
-chicago = read.csv("chicago_words.csv")
-top1000 = chicago$word[1:1000]
-chicago
+# chicago = read.csv("../chicago/chicago_words.csv")
+# top1000 = chicago$word[1:1000]
+# chicago
+# 
+# sent.list = rep(NA, 1000)
+# for (i in seq(1000)) {
+#   # print(sent.list[i])
+#   sent = nrc$sentiment[which(nrc$word == top1000[i])]
+#   # print(sent)
+#   # if (!identical(sent, character(0))) sent.list[i] = sent
+#   if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+# }
+# (sent.list = sent.list[!is.na(sent.list)])
+# (table = table(sent.list))
+# 
+# table[names(table) == "joy"]
 
-sent.list = rep(NA, 500)
+
+
+name = paste0("../hewins/hewins_words_per_book/Hewins_words_per_book_separated_nostem/book1_words.xlsx")
+hewins = read_excel(name)
+
+book_id = hewins$doc_id[1]
+top1000 = hewins$feature[1:1000]
+sent.list = rep(NA, 1000)
 for (i in seq(1000)) {
-  # print(sent.list[i])
-  sent = nrc$sentiment[which(nrc$word == top500[i])]
+  sent = nrc$sentiment[which(nrc$word == top1000[i])]
   # print(sent)
   # if (!identical(sent, character(0))) sent.list[i] = sent
   if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
 }
-(sent.list = sent.list[!is.na(sent.list)])
-(table = table(sent.list))
+sent.list = sent.list[!is.na(sent.list)]
+table = table(sent.list)
+# print(data.frame(table))
+res = as.data.frame(t(as.matrix(table)))
+res = cbind(book_id, res)
 
-table[names(table) == "joy"]
+for (i in 2:329) {
+  name = paste0("../hewins/hewins_words_per_book/Hewins_words_per_book_separated_nostem/book", i, "_words.xlsx")
+  hewins = read_excel(name)
+  book_id = hewins$doc_id[i]
+  top1000 = hewins$feature[1:1000]
+  sent.list = rep(NA, 1000)
+  for (i in seq(1000)) {
+    sent = nrc$sentiment[which(nrc$word == top1000[i])]
+    # print(sent)
+    # if (!identical(sent, character(0))) sent.list[i] = sent
+    if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+  }
+  sent.list = sent.list[!is.na(sent.list)]
+  table = table(sent.list)
+  # table = c(book_id, as.vector(table))
+  # print(data.frame(table))
+  new_row = as.data.frame(t(as.matrix(table)))
+  new_row = cbind(book_id, new_row)
+  res = rbind(res, new_row)
+}
+
+write_xlsx(res,"../hewins/hewins_sentiment_per_book.xlsx")
 ```
 
 
