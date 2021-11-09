@@ -14,9 +14,13 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
 ```{r sentiment}
+# FOR HEWINS
+
+
 # install.packages("tidytext")
 # install.packages("textdata")
 suppressMessages(library(tidytext))
+suppressMessages(library(writexl))
 nrc = get_sentiments("nrc")
 
 # chicago = read.csv("../chicago/chicago_words.csv")
@@ -83,8 +87,57 @@ write_xlsx(res,"../hewins/hewins_sentiment_per_book.xlsx")
 
 
 ```{r pressure}
-library(readxl)
-read_excel("hewins_words.xlsx")
+# FOR CHICAGO
+
+
+
+suppressMessages(library(tidytext))
+suppressMessages(library(writexl))
+nrc = get_sentiments("nrc")
+
+
+name = "../chicago/chicago_words_by_book.csv"
+chicago = data.frame(read.csv(name))
+books = split(chicago, chicago$doc_id)
+
+book = books[[1]]
+book_id = book$doc_id[1]
+top1000 = book$word[1:1000]
+sent.list = rep(NA, 1000)
+for (i in seq(1000)) {
+  sent = nrc$sentiment[which(nrc$word == top1000[i])]
+  # print(sent)
+  # if (!identical(sent, character(0))) sent.list[i] = sent
+  if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+}
+sent.list = sent.list[!is.na(sent.list)]
+table = table(sent.list)
+# print(data.frame(table))
+res = as.data.frame(t(as.matrix(table)))
+res = cbind(book_id, res)
+
+
+for (i in 2:329) {
+  book = books[[i]]
+  book_id = book$doc_id[1]
+  top1000 = book$word[1:1000]
+  sent.list = rep(NA, 1000)
+  for (i in seq(1000)) {
+    sent = nrc$sentiment[which(nrc$word == top1000[i])]
+    # print(sent)
+    # if (!identical(sent, character(0))) sent.list[i] = sent
+    if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+  }
+  sent.list = sent.list[!is.na(sent.list)]
+  table = table(sent.list)
+  # table = c(book_id, as.vector(table))
+  # print(data.frame(table))
+  new_row = as.data.frame(t(as.matrix(table)))
+  new_row = cbind(book_id, new_row)
+  res = rbind(res, new_row)
+}
+res
+write_xlsx(res,"../chicago/chicago_sentiment_per_book.xlsx")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
