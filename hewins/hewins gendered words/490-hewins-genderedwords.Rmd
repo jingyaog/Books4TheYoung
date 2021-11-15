@@ -1,0 +1,54 @@
+---
+title: "36-490 Hewins Gendered Word Frequencies"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(writexl)
+library(janitor)
+```
+
+```{r}
+files <- list.files("/Users/VickiChang/Desktop/All Hewins Fiction Books", full.names = T)
+df.list <- lapply(files, read_excel)
+```
+
+```{r}
+for (i in 1:329){
+  book = data.frame(df.list[i])
+  book <- book %>% mutate(nchar = nchar(feature))
+  total_words <- sum(book$frequency)
+  he      <- book %>% filter(nchar == nchar("he")      & feature == "he")      %>% select(frequency) %>% mutate(he     = frequency) %>% select(he)
+  she     <- book %>% filter(nchar == nchar("she")     & feature == "she")     %>% select(frequency) %>% mutate(she     = frequency) %>% select(she)
+  him     <- book %>% filter(nchar == nchar("him")     & feature == "him")     %>% select(frequency) %>% mutate(him     = frequency) %>% select(him)
+  her     <- book %>% filter(nchar == nchar("her")     & feature == "her")     %>% select(frequency) %>% mutate(her     = frequency) %>% select(her)
+  boy     <- book %>% filter(nchar == nchar("boy")     & feature == "boy")     %>% select(frequency) %>% mutate(boy     = frequency) %>% select(boy)
+  girl    <- book %>% filter(nchar == nchar("girl")    & feature == "girl")    %>% select(frequency) %>% mutate(girl    = frequency) %>% select(girl)
+  man     <- book %>% filter(nchar == nchar("man")     & feature == "man")     %>% select(frequency) %>% mutate(man     = frequency) %>% select(man)
+  woman   <- book %>% filter(nchar == nchar("woman")   & feature == "woman")   %>% select(frequency) %>% mutate(woman   = frequency) %>% select(woman)
+  mother  <- book %>% filter(nchar == nchar("mother")  & feature == "mother")  %>% select(frequency) %>% mutate(mother  = frequency) %>% select(mother)
+  father  <- book %>% filter(nchar == nchar("father")  & feature == "father")  %>% select(frequency) %>% mutate(father  = frequency) %>% select(father)
+  husband <- book %>% filter(nchar == nchar("husband") & feature == "husband") %>% select(frequency) %>% mutate(husband = frequency) %>% select(husband)
+  wife    <- book %>% filter(nchar == nchar("wife")    & feature == "wife")    %>% select(frequency) %>% mutate(wife    = frequency) %>% select(wife)
+  if (nrow(he)      == 0) {he      = data.frame(he      = 0)}
+  if (nrow(she)     == 0) {she     = data.frame(she     = 0)}
+  if (nrow(him)     == 0) {him     = data.frame(him     = 0)}
+  if (nrow(her)     == 0) {her     = data.frame(her     = 0)}
+  if (nrow(boy)     == 0) {boy     = data.frame(boy     = 0)}
+  if (nrow(girl)    == 0) {girl    = data.frame(girl    = 0)}
+  if (nrow(man)     == 0) {man     = data.frame(man     = 0)}
+  if (nrow(woman)   == 0) {woman   = data.frame(woman   = 0)}
+  if (nrow(mother)  == 0) {mother  = data.frame(mother  = 0)}
+  if (nrow(father)  == 0) {father  = data.frame(father  = 0)}
+  if (nrow(husband) == 0) {husband = data.frame(husband = 0)}
+  if (nrow(wife)    == 0) {wife    = data.frame(wife    = 0)}
+  doc_id <- book[1,4]
+  if(i == 1){ data_all <- cbind(doc_id, he, she, him, her, boy, girl, man, woman, mother, father, husband, wife, total_words)} else{ 
+    data <- cbind(doc_id, he, she, him, her, boy, girl, man, woman, mother, father, husband, wife, total_words)     
+    data_all <- rbind(data_all, data)}}
+
+write_xlsx(data_all,"/Users/VickiChang/Desktop/hewins_genderedwords.xlsx")
+```
+
