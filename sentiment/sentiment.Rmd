@@ -19,8 +19,11 @@ When you click the **Knit** button a document will be generated that includes bo
 
 # install.packages("tidytext")
 # install.packages("textdata")
+# install.packages("weights", repo="http://cran.r-project.org", dep=T)
 suppressMessages(library(tidytext))
+suppressMessages(library(readxl))
 suppressMessages(library(writexl))
+suppressMessages(library(weights))
 nrc = get_sentiments("nrc")
 
 # chicago = read.csv("../chicago/chicago_words.csv")
@@ -41,21 +44,24 @@ nrc = get_sentiments("nrc")
 # table[names(table) == "joy"]
 
 
-
 name = paste0("../hewins/hewins_words_per_book/Hewins_words_per_book_separated_nostem/book1_words.xlsx")
 hewins = read_excel(name)
 
 book_id = hewins$doc_id[1]
 top1000 = hewins$feature[1:1000]
+freqs = hewins$frequency[1:1000]
 sent.list = rep(NA, 1000)
 for (i in seq(1000)) {
   sent = nrc$sentiment[which(nrc$word == top1000[i])]
   # print(sent)
   # if (!identical(sent, character(0))) sent.list[i] = sent
-  if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+  if (!identical(sent, character(0))) {
+    for (j in seq(1:freqs[i]))
+      sent.list = append(sent.list, sent)
+  }
 }
 sent.list = sent.list[!is.na(sent.list)]
-table = table(sent.list)
+table = wpct(sent.list)
 # print(data.frame(table))
 res = as.data.frame(t(as.matrix(table)))
 res = cbind(book_id, res)
@@ -65,15 +71,19 @@ for (i in 2:329) {
   hewins = read_excel(name)
   book_id = hewins$doc_id[i]
   top1000 = hewins$feature[1:1000]
+  freqs = hewins$frequency[1:1000]
   sent.list = rep(NA, 1000)
   for (i in seq(1000)) {
     sent = nrc$sentiment[which(nrc$word == top1000[i])]
     # print(sent)
     # if (!identical(sent, character(0))) sent.list[i] = sent
-    if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+    if (!identical(sent, character(0))) {
+      for (j in seq(1:freqs[i]))
+        sent.list = append(sent.list, sent)
+    }
   }
   sent.list = sent.list[!is.na(sent.list)]
-  table = table(sent.list)
+  table = wpct(sent.list)
   # table = c(book_id, as.vector(table))
   # print(data.frame(table))
   new_row = as.data.frame(t(as.matrix(table)))
@@ -81,6 +91,7 @@ for (i in 2:329) {
   res = rbind(res, new_row)
 }
 
+head(res)
 write_xlsx(res,"../hewins/hewins_sentiment_per_book.xlsx")
 ```
 
@@ -90,9 +101,10 @@ write_xlsx(res,"../hewins/hewins_sentiment_per_book.xlsx")
 # FOR CHICAGO
 
 
-
 suppressMessages(library(tidytext))
+suppressMessages(library(readxl))
 suppressMessages(library(writexl))
+suppressMessages(library(weights))
 nrc = get_sentiments("nrc")
 
 
@@ -103,15 +115,19 @@ books = split(chicago, chicago$doc_id)
 book = books[[1]]
 book_id = book$doc_id[1]
 top1000 = book$word[1:1000]
+freqs = book$n[1:1000]
 sent.list = rep(NA, 1000)
 for (i in seq(1000)) {
   sent = nrc$sentiment[which(nrc$word == top1000[i])]
   # print(sent)
   # if (!identical(sent, character(0))) sent.list[i] = sent
-  if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+  if (!identical(sent, character(0))) {
+      for (j in seq(1:freqs[i]))
+      sent.list = append(sent.list, sent)
+  }
 }
 sent.list = sent.list[!is.na(sent.list)]
-table = table(sent.list)
+table = wpct(sent.list)
 # print(data.frame(table))
 res = as.data.frame(t(as.matrix(table)))
 res = cbind(book_id, res)
@@ -121,22 +137,26 @@ for (i in 2:329) {
   book = books[[i]]
   book_id = book$doc_id[1]
   top1000 = book$word[1:1000]
+  freqs = book$n[1:1000]
   sent.list = rep(NA, 1000)
   for (i in seq(1000)) {
     sent = nrc$sentiment[which(nrc$word == top1000[i])]
     # print(sent)
     # if (!identical(sent, character(0))) sent.list[i] = sent
-    if (!identical(sent, character(0))) sent.list = append(sent.list, sent)
+    if (!identical(sent, character(0))) {
+      for (j in seq(1:freqs[i]))
+      sent.list = append(sent.list, sent)
+    }
   }
   sent.list = sent.list[!is.na(sent.list)]
-  table = table(sent.list)
+  table = wpct(sent.list)
   # table = c(book_id, as.vector(table))
   # print(data.frame(table))
   new_row = as.data.frame(t(as.matrix(table)))
   new_row = cbind(book_id, new_row)
   res = rbind(res, new_row)
 }
-res
+head(res)
 write_xlsx(res,"../chicago/chicago_sentiment_per_book.xlsx")
 ```
 
